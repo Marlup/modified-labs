@@ -1,0 +1,28 @@
+{
+    "users": [
+        {
+            "name": "Sarah",
+            "status": "teacher"
+        },
+        {
+            "name": "Paul",
+            "status": "student"
+        },
+        {
+            "name": "Helena",
+            "status": "student"
+        },
+        {
+            "name": "Emma",
+            "status": "student"
+        },
+        {
+            "name": "Sasha",
+            "status": "other"
+        },
+        {
+            "name": "Joe",
+            "status": "unknown"
+        }
+    ]
+}

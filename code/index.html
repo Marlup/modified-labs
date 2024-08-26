@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat con Redis</title>
+  <script src="http://localhost:5500/socket.io/socket.io.js"></script>
+  <script>
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      const socket = io();
+      
+      let form = document.getElementById('form');
+      let input = document.getElementById('input');
+      let userForm = document.getElementById('userForm');
+      let usernameInput = document.getElementById('username');
+      let messages = document.getElementById('messages');
+      let isListeningMessages = false;
+      let isSendingMessages = false;
+      
+      // Add event on socket to listen for messages
+      function startListeningMessages() {
+        socket.on('chat message', function(msg) {
+          const item = document.createElement('li');
+          item.textContent = msg;
+          messages.appendChild(item);
+          window.scrollTo(0, document.body.scrollHeight);
+        });
+        isListeningMessages = true;
+      }
+      
+      // Add event on message form to send messages
+      function startSendingMessages() {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          if (input.value) {
+            socket.emit('chat message', input.value);
+            input.value = '';
+          }
+        });
+        isSendingMessages = true;
+      }
+      
+      // Add event on user form to send messages
+      userForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (usernameInput.value) {
+          socket.emit('add user', usernameInput.value);
+          userForm.style.display = 'none';
+          form.style.display = 'block';
+          input.focus();
+        }
+      });
+      
+      socket.on('session status', function(data) {
+        if (!data.loggedIn) {
+          // Si el usuario no está logueado, mostrar el formulario de usuario
+          document.getElementById('userForm').style.display = 'block';
+          document.getElementById('form').style.display = 'none';
+          return;
+        }
+        
+        let activateListeningMessages = false;
+        let activateSendingMessages = false;
+
+        if (session.canSend) {
+          // Si el usuario puede enviar mensajes, esconder el formulario de usuario y mostrar el de mensajes
+          document.getElementById('userForm').style.display = 'none';
+          document.getElementById('form').style.display = 'block';
+          activateListeningMessages = true;
+          activateSendingMessages = true;
+        } else {
+          // Si el usuario SOLO puede ver mensajes, esconder el formulario de usuario y el de mensajes
+          document.getElementById('userForm').style.display = 'none';
+          document.getElementById('form').style.display = 'none';
+          activateListeningMessages = true
+        }
+        
+        if (activateListeningMessages && !isListeningMessages) {
+         // Listen to incoming messages
+         startListeningMessages();
+        }
+        
+        // Send messages
+        if (activateSendingMessages && !isSendingMessages) {
+          startSendingMessages();
+        }
+      });
+
+      socket.on('permission status', function(data) {
+        let activateListeningMessages = false;
+        if (data.canSend) {
+          // Si el usuario puede enviar mensajes, esconder el formulario de usuario y mostrar el de mensajes
+          document.getElementById('userForm').style.display = 'none';
+          document.getElementById('form').style.display = 'block';
+          activateListeningMessages = true;
+        } else if (data.canReceive) {
+          // Si el usuario SOLO puede ver mensajes, esconder el formulario de usuario y el de mensajes
+          document.getElementById('userForm').style.display = 'none';
+          document.getElementById('form').style.display = 'none';
+          activateListeningMessages = true
+        }
+
+        if (activateListeningMessages && !isListeningMessages) {
+          startListeningMessages();
+        }
+      });
+
+    });
+  </script>
+</head>
+<body>
+  <ul id="messages"></ul>
+  <form id="userForm" action="">
+    <input id="username" autocomplete="off" placeholder="Enter your username"/><button>Enter Chat</button>
+  </form>
+  <form id="form" action="" style="display:none">
+    <input id="input" autocomplete="off" /><button>Send</button>
+  </form>
+</body>
+</html>
